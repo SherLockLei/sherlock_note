@@ -1,0 +1,107 @@
+Git
+git 命令学习
+1、安装git
+	在Windows上使用Git，可以从Git官网直接下载安装程序，然后按默认选项安装即可。
+	安装完成后，在开始菜单里找到“Git”->“Git Bash”，蹦出一个类似命令行窗口的东西，就说明Git安装成功！
+	安装完成后，还需要最后一步设置，在命令行输入：
+	$ git config --global user.name "Your Name"	
+	$ git config --global user.email "email@example.com"
+	注意git config命令的--global参数，用了这个参数，表示你这台机器上所有的Git仓库都会使用这个配置，
+  也可以对某个仓库指定不同的用户名和Email地址。
+	
+2、将文件提交到git
+	初始化一个Git仓库，使用git init命令。
+	添加文件到Git仓库，分两步：
+	使用命令git add <file>，注意，可反复多次使用，添加多个文件；
+	使用命令git commit -m <message>，完成。
+	
+3、版本回退
+	HEAD指向的版本就是当前版本，因此，Git允许我们在版本的历史之间穿梭，使用命令git reset --hard commit_id。
+	穿梭前，用git log可以查看提交历史，以便确定要回退到哪个版本。
+	要重返未来，用git reflog查看命令历史，以便确定要回到未来的哪个版本。
+	
+4、工作区和暂存区
+	把文件往Git版本库里添加的时候，是分两步执行的：
+	第一步是用git add把文件添加进去，实际上就是把文件修改添加到暂存区；
+	第二步是用git commit提交更改，实际上就是把暂存区的所有内容提交到当前分支。
+	因为我们创建Git版本库时，Git自动为我们创建了唯一一个master分支，所以，现在，git commit就是往master分支上提交更改。
+	你可以简单理解为，需要提交的文件修改通通放到暂存区，然后，一次性提交暂存区的所有修改。
+	每次修改，如果不用git add到暂存区，那就不会加入到commit中。
+
+5、撤销修改
+	场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout -- file。
+	场景2：当你不但改乱了工作区某个文件的内容，还添加到了暂存区时，想丢弃修改，分两步，第一步用命令git reset HEAD <file>，
+         就回到了场景1，第二步按场景1操作。
+	场景3：已经提交了不合适的修改到版本库时，想要撤销本次提交，参考版本回退一节，不过前提是没有推送到远程库。
+
+6、删除
+	在文件管理器将文件删除或者使用rm命令删除文件时，Git知道你删除了文件，因此，工作区和版本库就不一致了，
+  git status命令会立刻告诉你哪些文件被删除了。
+	现在你有两个选择，一是确实要从版本库中删除该文件，那就用命令git rm删掉，并且git commit：文件会从版本库中被删除。
+  另一种情况是删错了，因为版本库里还有呢，所以可以很轻松地把误删的文件恢复到最新版本：
+	$ git checkout -- test.txt
+	git checkout其实是用版本库里的版本替换工作区的版本，无论工作区是修改还是删除，都可以“一键还原”。、
+  删除文件夹步骤：git rm -rf 文件夹名；git add -A；git commit -m “delete dir”；git push
+  
+  git add -A和 git add .   git add -u在功能上看似很相近，但还是存在一点差别
+  git add . ：他会监控工作区的状态树，使用它会把工作时的所有变化提交到暂存区，包括文件内容修改(modified)以及新文件(new)，
+  但不包括被删除的文件。
+  git add -u ：他仅监控已经被add的文件（即tracked file），他会将被修改的文件提交到暂存区。add -u 不会提交新文件（untracked file）。（git add --update的缩写）
+  git add -A ：是上面两个功能的合集（git add --all的缩写）
+
+7、添加远程库
+	要关联一个远程库，使用命令git remote add origin git@server-name:path/repo-name.git；
+	关联后，使用命令git push -u origin master第一次推送master分支的所有内容；
+	此后，每次本地提交后，只要有必要，就可以使用命令git push origin master推送最新修改；
+	分布式版本系统的最大好处之一是在本地工作完全不需要考虑远程库的存在，也就是有没有联网都可以正常工作，
+  而SVN在没有联网的时候是拒绝干活的！当有网络的时候，再把本地提交推送一下就完成了同步，真是太方便了！
+
+8、从远程库克隆
+	要克隆一个仓库，首先必须知道仓库的地址，然后使用git clone命令克隆。
+	Git支持多种协议，包括https，但通过ssh支持的原生git协议速度最快。
+	$ git clone git@github.com:michaelliao/gitskills.git
+
+9、分支管理
+	1）创建与合并分支
+	  Git鼓励大量使用分支：
+	  查看分支：git branch
+	  创建分支：git branch  name
+	  切换分支：git checkout  name
+	  创建+切换分支：git checkout -b  name
+	  合并某分支到当前分支：git merge  name
+	  删除分支：git branch -d  name
+	2）解决冲突
+	  当Git无法自动合并分支时，就必须首先解决冲突。解决冲突后，再提交，合并完成。
+	  解决冲突就是把Git合并失败的文件手动编辑为我们希望的内容，再提交。
+	  用git log --graph命令可以看到分支合并图。
+	3）分支管理策略
+	  合并分支时，加上--no-ff参数就可以用普通模式合并，合并后的历史有分支，能看出来曾经做过合并，
+    而fast forward合并就看不出来曾经做过合并。
+	4）Bug分支
+	  修复bug时，我们会通过创建新的bug分支进行修复，然后合并，最后删除；
+	  当手头工作没有完成时，先把工作现场git stash一下，然后去修复bug，修复后，再git stash pop，回到工作现场。
+	  如果要丢弃一个没有被合并过的分支，可以通过git branch -D <name>强行删除。
+	5）rebase
+	  rebase操作可以把本地未push的分叉提交历史整理成直线；
+	  rebase的目的是使得我们在查看历史提交的变化时更容易，因为分叉的提交需要三方对比。
+
+10、标签管理
+	  命令git tag <tagname>用于新建一个标签，默认为HEAD，也可以指定一个commit id；
+	  命令git tag -a <tagname> -m "blablabla..."可以指定标签信息；
+	  命令git tag可以查看所有标签。
+	  命令git push origin <tagname>可以推送一个本地标签；
+	  命令git push origin --tags可以推送全部未推送过的本地标签；
+	  命令git tag -d <tagname>可以删除一个本地标签；
+	  命令git push origin :refs/tags/<tagname>可以删除一个远程标签。
+
+11、自定义git
+	1）忽略特殊文件
+	  忽略某些文件时，需要编写.gitignore；
+	  .gitignore文件本身要放到版本库里，并且可以对.gitignore做版本管理！
+	  https://github.com/github/gitignore
+
+
+
+
+
+
